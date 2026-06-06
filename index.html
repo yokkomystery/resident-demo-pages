@@ -1,0 +1,2987 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>まちビュー | 街のリアルと、つながる。</title>
+  <!-- SEO & Apple App Mode -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#10b981">
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-soft: #ecfdf5;
+      --primary-glow: rgba(16, 185, 129, 0.15);
+      
+      --accent: #d4956a;
+      --accent-soft: #fdf3ec;
+      --accent-hover: #b87c53;
+      
+      --bg-app: #f2f6f4;
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --bg-glass: rgba(255, 255, 255, 0.7);
+      
+      --text: #111a15;
+      --text-muted: #5e6f65;
+      --border: rgba(220, 230, 224, 0.6);
+      --border-focus: #10b981;
+      
+      --shadow-sm: 0 2px 8px rgba(16, 40, 28, 0.04);
+      --shadow-md: 0 8px 24px rgba(16, 40, 28, 0.06);
+      --shadow-lg: 0 16px 40px rgba(16, 40, 28, 0.1);
+      
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      
+      --font-family: 'Plus Jakarta Sans', 'Noto Sans JP', -apple-system, sans-serif;
+    }
+
+    /* Reset & Base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-app);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Core container mimicking native experience */
+    .phone-viewport {
+      width: 100%;
+      height: 100%;
+      max-width: 480px; /* Restrict to beautiful mobile app view on desktop */
+      background-color: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0,0,0,0.1);
+      border-right: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+    }
+
+    @media (min-width: 481px) {
+      .phone-viewport {
+        height: 92vh;
+        border-radius: var(--radius-lg);
+        border: 4px solid var(--border);
+      }
+    }
+
+    /* --- Fixed Header --- */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      color: var(--primary);
+    }
+
+    /* Area Selector Dropdown */
+    .area-selector-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .area-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 99px;
+      padding: 6px 14px;
+      color: var(--primary-hover);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .area-btn:hover, .area-btn:focus {
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .area-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      width: 140px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 110;
+    }
+
+    .area-dropdown.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .area-option {
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .area-option:hover {
+      background: var(--primary-soft);
+      color: var(--primary-hover);
+    }
+
+    .area-option.selected {
+      color: var(--primary-hover);
+      background: var(--primary-soft);
+    }
+
+    /* Notification Bell */
+    .notif-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .notif-btn:hover {
+      background: rgba(0,0,0,0.03);
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    /* --- App Body Panels --- */
+    .app-body {
+      flex: 1;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: 24px;
+      scrollbar-width: none; /* Hide scrollbars */
+    }
+
+    .app-body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .app-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px 16px 80px;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98) translateY(8px);
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .app-panel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .app-panel.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+      position: relative;
+    }
+
+    /* --- Card & Layout Guidelines --- */
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 18px;
+      margin-bottom: 16px;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .glass-card:hover {
+      box-shadow: var(--shadow-md);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Section divider line */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* --- PANEL: MAP & SCORES --- */
+    .weather-trivia-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .weather-card {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+    }
+
+    .trivia-card {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #fde68a;
+      color: #b45309;
+    }
+
+    .mini-card-title {
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-card-text {
+      font-size: 0.8rem;
+      line-height: 1.45;
+      font-weight: 600;
+    }
+
+    /* Map Box Wrapper */
+    .map-container {
+      width: 100%;
+      height: 240px;
+      background-color: #eef2f0;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 16px;
+    }
+
+    /* Simulated Vector Styled Map Graphic */
+    .simulated-map {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background-color: #f1f4f2;
+      overflow: hidden;
+    }
+
+    .map-river {
+      position: absolute;
+      background: #e0f2fe;
+      border-radius: 99px;
+      filter: blur(1px);
+      transition: all 0.5s ease;
+    }
+
+    .map-park {
+      position: absolute;
+      background: #e6f4ea;
+      border-radius: var(--radius-md);
+      transition: all 0.5s ease;
+    }
+
+    .map-street {
+      position: absolute;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      border-radius: 4px;
+      transition: all 0.5s ease;
+    }
+
+    /* Setagaya / Suginami dynamic layouts */
+    .simulated-map.setagaya .map-river {
+      width: 40px;
+      height: 300px;
+      top: -30px;
+      left: 360px;
+      transform: rotate(30deg);
+    }
+    .simulated-map.setagaya .map-park {
+      width: 120px;
+      height: 80px;
+      top: 40px;
+      left: 30px;
+    }
+    .simulated-map.setagaya .map-street-1 {
+      width: 8px;
+      height: 240px;
+      left: 190px;
+      top: 0;
+    }
+    .simulated-map.setagaya .map-street-2 {
+      width: 480px;
+      height: 8px;
+      left: 0;
+      top: 130px;
+    }
+
+    .simulated-map.suginami .map-river {
+      width: 30px;
+      height: 480px;
+      top: -100px;
+      left: 90px;
+      transform: rotate(-40deg);
+    }
+    .simulated-map.suginami .map-park {
+      width: 100px;
+      height: 100px;
+      top: 110px;
+      left: 260px;
+    }
+    .simulated-map.suginami .map-street-1 {
+      width: 8px;
+      height: 240px;
+      left: 230px;
+      top: 0;
+    }
+    .simulated-map.suginami .map-street-2 {
+      width: 480px;
+      height: 8px;
+      left: 0;
+      top: 80px;
+    }
+
+    /* Interactive Map Pins */
+    .map-pin {
+      position: absolute;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translate(-50%, -100%);
+      z-index: 10;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .map-pin:hover {
+      transform: translate(-50%, -105%) scale(1.15);
+      z-index: 20;
+    }
+
+    .pin-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 3px solid var(--primary);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1rem;
+      position: relative;
+    }
+
+    .pin-circle.pulse::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      top: -2px;
+      left: -2px;
+      animation: pin-pulse 1.8s infinite ease-out;
+    }
+
+    @keyframes pin-pulse {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    .pin-circle.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pin-circle.accent::after {
+      border-color: var(--accent);
+    }
+
+    .pin-triangle {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid var(--primary);
+      margin-top: -1px;
+    }
+
+    .pin-circle.accent + .pin-triangle {
+      border-top-color: var(--accent);
+    }
+
+    .pin-label {
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Area Scores 5-Axis Dashboard */
+    .score-axis-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .score-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .score-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .score-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .score-value {
+      color: var(--primary-hover);
+      font-weight: 800;
+    }
+
+    .score-bar-bg {
+      height: 8px;
+      width: 100%;
+      background-color: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* --- PANEL: COMMUNITY FEED --- */
+    .feed-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .feed-tabs::-webkit-scrollbar { display: none; }
+
+    .feed-tab-btn {
+      flex-shrink: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .feed-tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Feed Items */
+    .feed-item {
+      position: relative;
+    }
+
+    .feed-item.admin-notice {
+      border: 2px solid var(--primary);
+      background: var(--primary-soft);
+      animation: notice-pulse 2s infinite alternate;
+    }
+
+    @keyframes notice-pulse {
+      0% { border-color: rgba(16, 185, 129, 0.4); }
+      100% { border-color: rgba(16, 185, 129, 1); }
+    }
+
+    .feed-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 99px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .badge-notice { background-color: var(--primary); color: #fff; }
+    .badge-qa { background-color: #e0f2fe; color: #0369a1; }
+    .badge-giveaway { background-color: var(--accent-soft); color: var(--accent); }
+    .badge-event { background-color: #f3e8ff; color: #6b21a8; }
+
+    .feed-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .feed-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.5rem;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .feed-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .feed-desc {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .feed-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .feed-action-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .feed-action-btn:hover {
+      color: var(--primary);
+    }
+    .feed-action-btn.liked {
+      color: #ef4444;
+    }
+
+    /* Floating Add Post Button */
+    .fab-post {
+      position: absolute;
+      bottom: 74px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+      cursor: pointer;
+      border: none;
+      z-index: 50;
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .fab-post:hover {
+      transform: scale(1.08) rotate(90deg);
+    }
+
+    /* --- PANEL: SHOPS & COUPONS --- */
+    .shop-search {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: var(--text);
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .shop-search:focus {
+      border-color: var(--primary);
+    }
+
+    .shop-list-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .shop-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .shop-img {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-md);
+      background-size: cover;
+      background-position: center;
+      background-color: var(--border);
+      flex-shrink: 0;
+    }
+
+    .shop-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .shop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .shop-name {
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .shop-rating {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .shop-cat-dist {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .shop-coupon-alert {
+      align-self: flex-start;
+      margin-top: 2px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--primary-hover);
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* --- PANEL: MACHI BYUN AI CHAT --- */
+    .chat-layout {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 140px); /* Fill the viewport minus header & footer */
+    }
+
+    @media (min-width: 481px) {
+      .chat-layout {
+        height: calc(92vh - 140px);
+      }
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: none;
+    }
+    .chat-messages::-webkit-scrollbar { display: none; }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chat-bubble.ai {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      align-self: flex-start;
+    }
+
+    .chat-bubble.user {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .preset-chip {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 99px;
+      padding: 6px 12px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--primary-hover);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-chip:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding-top: 8px;
+      background: transparent;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+    }
+
+    .chat-send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.2s;
+    }
+
+    .chat-send-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    /* --- PANEL: MY PAGE --- */
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .profile-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .profile-meta {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Saved Lists on My Page */
+    .mypage-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .mypage-menu-item {
+      background: #fff;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      transition: background 0.2s;
+    }
+
+    .mypage-menu-item:hover {
+      background: var(--primary-soft);
+    }
+
+    .mypage-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    /* --- App Navigation (Bottom Bar) --- */
+    .app-nav {
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.65rem;
+      font-weight: 800;
+      width: 64px;
+      transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .nav-item i {
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .nav-item:hover {
+      color: var(--primary);
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item.active i {
+      transform: scale(1.15) translateY(-2px);
+    }
+
+    /* --- Modals, Sheets, Overlays (Premium Sliding sheets) --- */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(16, 26, 21, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Premium Slide-up sheet */
+    .bottom-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-height: 85%;
+      background: #fff;
+      border-top-left-radius: var(--radius-lg);
+      border-top-right-radius: var(--radius-lg);
+      box-shadow: 0 -12px 40px rgba(0,0,0,0.15);
+      z-index: 210;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .bottom-sheet.open {
+      transform: translateY(0);
+    }
+
+    .sheet-header {
+      padding: 16px 20px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .sheet-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .sheet-close-btn {
+      background: var(--primary-soft);
+      border: none;
+      color: var(--primary-hover);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .sheet-body {
+      padding: 12px 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+      scrollbar-width: none;
+    }
+    .sheet-body::-webkit-scrollbar { display: none; }
+
+    /* Button styles */
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      width: 100%;
+      border-radius: 99px;
+      padding: 12px 20px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 18px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--primary-soft);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      color: var(--primary-hover);
+    }
+    .btn-secondary:hover {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-accent:hover {
+      background: var(--accent-hover);
+    }
+
+    /* QR Code Display for Coupon Use */
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    .qr-box {
+      width: 160px;
+      height: 160px;
+      background: #fff;
+      border: 6px solid #eef2f0;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .qr-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Modal Form Group */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      background: #f7faf8;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      color: var(--text);
+    }
+
+    .form-textarea {
+      resize: none;
+      height: 80px;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    /* DM Message Panel in My Page */
+    .chat-sheet-messages {
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* Toast Notifications System */
+    .toast-container {
+      position: absolute;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .toast-container.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast {
+      background: rgba(17, 26, 21, 0.9);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    /* CSS Loader for AI thoughts */
+    .typing-loader {
+      display: flex;
+      gap: 4px;
+      padding: 4px 6px;
+      align-items: center;
+    }
+
+    .typing-loader span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: typing-dots 1.4s infinite ease-in-out;
+    }
+
+    .typing-loader span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing-dots {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-4px); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Device Viewport for Machi View App -->
+  <div class="phone-viewport">
+    
+    <!-- Top Fixed App Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">V</div>
+        <div class="brand-name">まちビュー</div>
+      </div>
+      
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- Area Selector Dropdown Button -->
+        <div class="area-selector-container">
+          <button class="area-btn" id="areaSelectBtn" onclick="toggleAreaDropdown()">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+            <span id="currentAreaText">世田谷区</span>
+            <i data-lucide="chevron-down" style="width: 14px; height: 14px;"></i>
+          </button>
+          
+          <div class="area-dropdown" id="areaDropdown">
+            <div class="area-option selected" onclick="selectArea('setagaya', '世田谷区')">世田谷区 <i data-lucide="check" style="width: 14px; height: 14px; color: var(--primary);"></i></div>
+            <div class="area-option" onclick="selectArea('suginami', '杉並区')">杉並区</div>
+          </div>
+        </div>
+        
+        <!-- Notifications Bell -->
+        <button class="notif-btn" onclick="showNotificationToast()">
+          <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+          <div class="notif-badge"></div>
+        </button>
+      </div>
+    </header>
+
+    <!-- App Dynamic Toast Notifications -->
+    <div class="toast-container" id="toastContainer">
+      <div class="toast">
+        <i data-lucide="info" style="width: 16px; height: 16px; color: var(--primary);"></i>
+        <span id="toastText">クーポンを取得しました！</span>
+      </div>
+    </div>
+
+    <!-- Main Dynamic Content Panel Viewports -->
+    <main class="app-body">
+
+      <!-- ============================================== -->
+      <!-- 1. TAB PANEL: MAP & e-Stat TOWN SCORES (HOME)  -->
+      <!-- ============================================== -->
+      <section class="app-panel active" id="panel-map">
+        
+        <!-- AI Daily weather & trivia feed row -->
+        <div class="weather-trivia-row">
+          <div class="weather-card glass-card" style="margin:0; padding:12px;" onclick="showAILogModal('weather')">
+            <div class="mini-card-title">
+              <i data-lucide="cloud-sun" style="width: 12px; height: 12px;"></i> AI今日の天気
+            </div>
+            <div class="mini-card-text" id="aiWeatherText">今日も爽やかな晴天。等々力渓谷の散歩が心地よい...</div>
+          </div>
+          
+          <div class="trivia-card glass-card" style="margin:0; padding:12px;" onclick="showAILogModal('trivia')">
+            <div class="mini-card-title">
+              <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> AI街の豆知識
+            </div>
+            <div class="mini-card-text" id="aiTriviaText">世田谷区は23区最大の人口（約94万人）を擁し...</div>
+          </div>
+        </div>
+
+        <!-- Interactive Map Container -->
+        <div class="map-container">
+          <div class="simulated-map setagaya" id="simulatedMap">
+            <!-- Simulated street background layers -->
+            <div class="map-park"></div>
+            <div class="map-river"></div>
+            <div class="map-street map-street-1"></div>
+            <div class="map-street map-street-2"></div>
+            
+            <!-- Floating Interactive Map Pins (Rendered Dynamically via JS) -->
+            <div id="mapPinsContainer"></div>
+          </div>
+        </div>
+
+        <!-- Area e-Stat Score Stats Cards -->
+        <div class="glass-card">
+          <div class="card-title">
+            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px; color: var(--primary);"></i>
+            <span>公的統計街スコア (e-Stat偏差値)</span>
+          </div>
+          
+          <div class="score-axis-grid" id="scoreGrid">
+            <!-- Safety Score -->
+            <div class="score-row">
+              <div class="score-label-row">
+                <span class="score-name"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> 治安・安全度</span>
+                <span class="score-value" id="scoreVal-safety">62</span>
+              </div>
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" id="scoreBar-safety" style="width: 62%;"></div>
+              </div>
+            </div>
+            <!-- Childcare Score -->
+            <div class="score-row">
+              <div class="score-label-row">
+                <span class="score-name"><i data-lucide="smile" style="width: 14px; height: 14px;"></i> 子育て環境</span>
+                <span class="score-value" id="scoreVal-childcare">68</span>
+              </div>
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" id="scoreBar-childcare" style="width: 68%;"></div>
+              </div>
+            </div>
+            <!-- Transport Score -->
+            <div class="score-row">
+              <div class="score-label-row">
+                <span class="score-name"><i data-lucide="train" style="width: 14px; height: 14px;"></i> 交通アクセス</span>
+                <span class="score-value" id="scoreVal-transport">58</span>
+              </div>
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" id="scoreBar-transport" style="width: 58%;"></div>
+              </div>
+            </div>
+            <!-- Prices Score -->
+            <div class="score-row">
+              <div class="score-label-row">
+                <span class="score-name"><i data-lucide="banknote" style="width: 14px; height: 14px;"></i> 物価満足度</span>
+                <span class="score-value" id="scoreVal-prices">48</span>
+              </div>
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" id="scoreBar-prices" style="width: 48%;"></div>
+              </div>
+            </div>
+            <!-- Food Score -->
+            <div class="score-row">
+              <div class="score-label-row">
+                <span class="score-name"><i data-lucide="utensils" style="width: 14px; height: 14px;"></i> 飲食店充実度</span>
+                <span class="score-value" id="scoreVal-food">65</span>
+              </div>
+              <div class="score-bar-bg">
+                <div class="score-bar-fill" id="scoreBar-food" style="width: 65%;"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <!-- AI Score insight comment text -->
+          <div style="font-size: 0.78rem; line-height: 1.5; color: var(--text-muted); display: flex; gap: 6px;">
+            <i data-lucide="message-square" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; margin-top: 2px;"></i>
+            <span id="scoreAiInsight">世田谷区は「子育て環境」「飲食店」で非常に高い偏差値を誇ります。e-Statデータより待機児童数ゼロ化の進展や小児科・公園比率の高さが確認できます。</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 2. TAB PANEL: COMMUNITY UGC FEED               -->
+      <!-- ============================================== -->
+      <section class="app-panel" id="panel-feed">
+        
+        <!-- Filter Tabs -->
+        <div class="feed-tabs">
+          <button class="feed-tab-btn active" onclick="filterFeed('all')">すべて</button>
+          <button class="feed-tab-btn" onclick="filterFeed('notice')">公式行政告知</button>
+          <button class="feed-tab-btn" onclick="filterFeed('qa')">質問・Q&A</button>
+          <button class="feed-tab-btn" onclick="filterFeed('giveaway')">譲り合い</button>
+          <button class="feed-tab-btn" onclick="filterFeed('event')">イベント</button>
+        </div>
+
+        <!-- UGC posts list container -->
+        <div class="shop-list-row" id="ugcFeedContainer">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Floating action button to post -->
+        <button class="fab-post" onclick="openBottomSheet('sheetPostUgc')">
+          <i data-lucide="plus" style="width: 24px; height: 24px;"></i>
+        </button>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 3. TAB PANEL: SHOPS & ACTIVE COUPONS           -->
+      <!-- ============================================== -->
+      <section class="app-panel" id="panel-shops">
+        
+        <!-- Search bar -->
+        <input type="text" class="shop-search" id="shopSearchInput" placeholder="地元の店舗やクーポンを検索..." oninput="handleShopSearch()">
+        
+        <!-- Shops list container -->
+        <div class="shop-list-row" id="shopsListContainer">
+          <!-- Populated by JS -->
+        </div>
+
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 4. TAB PANEL: MACHI BYUN AI CHATBOT            -->
+      <!-- ============================================== -->
+      <section class="app-panel" id="panel-ai">
+        <div class="chat-layout">
+          <!-- Messages viewport -->
+          <div class="chat-messages" id="aiChatMessages">
+            <div class="chat-bubble ai">
+              こんにちは！「まちビュー」公式AIアシスタントの**まちビュン**です。⚡<br>
+              世田谷区や杉並区の行政サービス、子育て情報、おすすめスポット、街の統計について何でも聞いてください！
+            </div>
+          </div>
+          
+          <!-- Preset quick-ask chips -->
+          <div class="preset-chips" id="aiPresetChips">
+            <!-- Populated dynamically based on region -->
+          </div>
+          
+          <!-- Input field row -->
+          <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chatInput" placeholder="まちビュンに質問する..." onkeydown="if(event.key === 'Enter') sendUserMessage()">
+            <button class="chat-send-btn" onclick="sendUserMessage()">
+              <i data-lucide="arrow-up" style="width: 20px; height: 20px;"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- 5. TAB PANEL: MY PAGE                          -->
+      <!-- ============================================== -->
+      <section class="app-panel" id="panel-mypage">
+        
+        <!-- User Profile -->
+        <div class="profile-card">
+          <div class="profile-avatar">M</div>
+          <div class="profile-info">
+            <div class="profile-name">まちびゅう市民</div>
+            <div class="profile-meta">一般住民メンバー &bull; 登録: 2026年</div>
+          </div>
+        </div>
+
+        <!-- Saved lists / history -->
+        <div class="mypage-menu">
+          <div class="mypage-menu-item" onclick="openBottomSheet('sheetGrabbedCoupons')">
+            <span>取得したクーポン履歴</span>
+            <span class="mypage-badge" id="grabbedCouponsBadge">0</span>
+          </div>
+          <div class="mypage-menu-item" onclick="openBottomSheet('sheetActiveChats')">
+            <span>譲り合い・DMチャット履歴</span>
+            <span class="mypage-badge" id="mypageChatsBadge">0</span>
+          </div>
+          <div class="mypage-menu-item" onclick="showSimpleAlert('統計フィードバック', '住民スコアの提供にご協力ありがとうございます。世田谷区のe-Stat指標更新は毎月実施されます。')">
+            <span>回答した街スコア・アンケート</span>
+            <i data-lucide="chevron-right" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+          </div>
+        </div>
+
+        <div class="glass-card" style="text-align: center; padding: 24px 18px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">重点検証デモモード動作中</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.4;">
+            このアプリは、店舗管理者CMS (merchant.html) および自治体CMS (municipality.html) と localStorage を介してシームレスに同期しています。
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="app-nav">
+      <div class="nav-item active" onclick="switchTab('map')" id="nav-map">
+        <i data-lucide="map" style="width: 22px; height: 22px;"></i>
+        <span>マップ</span>
+      </div>
+      
+      <div class="nav-item" onclick="switchTab('feed')" id="nav-feed">
+        <i data-lucide="message-square" style="width: 22px; height: 22px;"></i>
+        <span>フィード</span>
+      </div>
+      
+      <div class="nav-item" onclick="switchTab('shops')" id="nav-shops">
+        <i data-lucide="ticket" style="width: 22px; height: 22px;"></i>
+        <span>店舗・クーポン</span>
+      </div>
+      
+      <div class="nav-item" onclick="switchTab('ai')" id="nav-ai">
+        <i data-lucide="zap" style="width: 22px; height: 22px;"></i>
+        <span>まちビュンAI</span>
+      </div>
+      
+      <div class="nav-item" onclick="switchTab('mypage')" id="nav-mypage">
+        <i data-lucide="user" style="width: 22px; height: 22px;"></i>
+        <span>マイページ</span>
+      </div>
+    </nav>
+
+    <!-- ============================================== -->
+    <!-- SLIDING BOTTOM SHEETS & INTERACTIVE OVERLAYS    -->
+    <!-- ============================================== -->
+    <div class="overlay" id="appOverlay" onclick="closeAllSheets()"></div>
+
+    <!-- 1. Bottom Sheet: Shop Detail -->
+    <div class="bottom-sheet" id="sheetShopDetail">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title" id="sheetShopName">焼き鳥 八兵衛</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetShopDetail')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="shop-img" id="sheetShopImg" style="width: 100%; height: 140px; margin-bottom: 12px; border-radius: var(--radius-md);"></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span class="shop-cat-dist" id="sheetShopCat">グルメ &bull; 三軒茶屋駅 徒歩3分</span>
+          <span class="shop-rating" id="sheetShopRating"><i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor;"></i> 4.8</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;" id="sheetShopDesc">
+          創業30年、地元の住民に愛され続ける炭火焼き鳥店。秘伝のタレと厳選した国産鶏を使用し、一本一本丁寧に焼き上げています。アットホームな店内でご家族連れも大歓迎！
+        </p>
+
+        <!-- Coupon Card Section -->
+        <div id="sheetShopCouponSection">
+          <!-- Generated dynamically -->
+        </div>
+
+        <div class="divider"></div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="incrementShopMetric('calls')">
+            <i data-lucide="phone" style="width: 16px; height: 16px;"></i> 電話する
+          </button>
+          <button class="btn btn-secondary" onclick="incrementShopMetric('routes')">
+            <i data-lucide="navigation" style="width: 16px; height: 16px;"></i> 経路案内
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Bottom Sheet: Active Coupon QR Code -->
+    <div class="bottom-sheet" id="sheetCouponQr">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">クーポンを使用する</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetCouponQr')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="qr-container">
+          <div style="font-size: 0.95rem; font-weight: 800; color: var(--primary-hover);" id="qrCouponTitle">【限定】ワンドリンク無料</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="qrShopName">焼き鳥 八兵衛</div>
+          <div class="qr-box">
+            <!-- Simulated QR code SVG -->
+            <svg width="120" height="120" viewBox="0 0 100 100" style="fill: var(--text);">
+              <rect x="0" y="0" width="25" height="25" />
+              <rect x="5" y="5" width="15" height="15" fill="#fff" />
+              <rect x="8" y="8" width="9" height="9" />
+              
+              <rect x="75" y="0" width="25" height="25" />
+              <rect x="80" y="5" width="15" height="15" fill="#fff" />
+              <rect x="83" y="8" width="9" height="9" />
+              
+              <rect x="0" y="75" width="25" height="25" />
+              <rect x="5" y="80" width="15" height="15" fill="#fff" />
+              <rect x="8" y="83" width="9" height="9" />
+              
+              <!-- Random QR pixels -->
+              <rect x="35" y="10" width="10" height="10" />
+              <rect x="50" y="0" width="10" height="5" />
+              <rect x="60" y="15" width="5" height="20" />
+              <rect x="30" y="40" width="25" height="25" />
+              <rect x="65" y="65" width="30" height="30" />
+              <rect x="40" y="75" width="15" height="5" />
+              <rect x="85" y="35" width="10" height="15" />
+            </svg>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45;">
+            お会計時または注文時に、この画面を店舗スタッフにご提示ください。<br>
+            <strong>「使用済みにする」</strong>をタップすると、店舗アナリティクスに即座に利用数が反映されます。
+          </div>
+          <button class="btn btn-primary" style="margin-top: 8px;" onclick="confirmUseCoupon()">
+            使用済みにする
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Bottom Sheet: Create UGC Post Form -->
+    <div class="bottom-sheet" id="sheetPostUgc">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">地域フィードに投稿する</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetPostUgc')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <form id="ugcPostForm" onsubmit="submitCustomPost(event)">
+          <div class="form-group">
+            <label class="form-label">カテゴリ</label>
+            <select class="form-select" id="postCategory" required>
+              <option value="qa">質問・Q&A（地域のアドバイスを求める）</option>
+              <option value="giveaway">譲り合い（不要な物を譲る・探す）</option>
+              <option value="event">地域イベント（近隣の集まりやマーケット）</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">タイトル</label>
+            <input type="text" class="form-input" id="postTitle" placeholder="簡潔なタイトルを入力してください..." required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">内容詳細</label>
+            <textarea class="form-textarea" id="postDesc" placeholder="具体的な内容や、引き渡し条件、場所、日程などを入力してください..." required></textarea>
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+            <i data-lucide="send" style="width: 16px; height: 16px;"></i> 投稿を配信する
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 4. Bottom Sheet: Active DM Chat panel -->
+    <div class="bottom-sheet" id="sheetChatDm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title" id="sheetChatPartnerName">お相手の名前</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetChatDm')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body" style="display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Messaging viewport -->
+        <div class="chat-sheet-messages" id="sheetChatMessages">
+          <!-- Populated dynamically -->
+        </div>
+        
+        <!-- Input field -->
+        <div class="chat-input-row" style="padding-top: 0;">
+          <input type="text" class="chat-input" id="sheetChatInput" placeholder="メッセージを入力..." onkeydown="if(event.key === 'Enter') sendDmMessage()">
+          <button class="chat-send-btn" onclick="sendDmMessage()">
+            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Bottom Sheet: My Grabbed Coupons list -->
+    <div class="bottom-sheet" id="sheetGrabbedCoupons">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">取得したクーポン一覧</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetGrabbedCoupons')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="shop-list-row" id="grabbedCouponsListContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Bottom Sheet: My Active Chats list -->
+    <div class="bottom-sheet" id="sheetActiveChats">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">チャット・メッセージ一覧</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetActiveChats')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="shop-list-row" id="activeChatsListContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Bottom Sheet: AI Log details modal -->
+    <div class="bottom-sheet" id="sheetAILogDetails">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title" id="sheetAILogTitle">AI生成ログ詳細</span>
+        <button class="sheet-close-btn" onclick="closeBottomSheet('sheetAILogDetails')">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="glass-card" style="border-left: 4px solid var(--primary); background: var(--primary-soft); padding: 12px 16px; margin-bottom: 12px;">
+          <div style="font-size: 0.74rem; font-weight: 800; color: var(--primary-hover);">STATUS: 稼働中 (毎朝自動生成・配信完了)</div>
+          <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;" id="sheetAILogMeta">モデル: Gemini 2.5 Flash &bull; 配信先: 全国1,741市区町村</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">生成プロンプト</label>
+          <div style="font-size: 0.8rem; background: #f1f4f2; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; font-family: monospace; white-space: pre-wrap; line-height: 1.45;" id="sheetAILogPrompt"></div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">生成結果 (UGC代替コンテンツ)</label>
+          <div style="font-size: 0.85rem; background: #fff; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; line-height: 1.5; font-weight: 600;" id="sheetAILogResult"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- APP LOGIC & STATE COORDINATOR SCRIPT            -->
+  <!-- ============================================== -->
+  <script>
+    // --- Mock Data Store ---
+    const AREA_DATA = {
+      setagaya: {
+        name: '世田谷区',
+        scores: { safety: 62, childcare: 68, transport: 58, prices: 48, food: 65 },
+        weather: '今日も爽やかな晴天。等々力渓谷の散歩が心地よい一日になりそうです。朝晩は冷え込むため、薄手の羽織ものをお持ちください。',
+        trivia: '世田谷区は、なんと東京23区内で最大の人口（約94万人）を擁しています。そのため区内には数々の独自の福祉・子育て支援策が充実しています。',
+        insight: '世田谷区は「子育て環境」「飲食店」で非常に高い偏差値を誇ります。e-Statデータより待機児童数ゼロ化の進展や小児科・公園比率の高さが確認できます。',
+        pins: [
+          { id: 'shop_hachibei', type: 'shop', label: '八兵衛 🍗', lat: 100, lng: 160 },
+          { id: 'shop_setabun', type: 'shop', label: 'セタ文 ✏️', lat: 210, lng: 80 },
+          { id: 'post_trike', type: 'post', category: 'giveaway', label: '三輪車譲ります 🚲', lat: 70, lng: 280 }
+        ],
+        aiPresets: [
+          '子育て支援制度について教えて',
+          '区内の美味しい焼き鳥屋さんは？',
+          '世田谷区の人口が多い理由は？',
+          '避難所や防災情報を知りたい'
+        ]
+      },
+      suginami: {
+        name: '杉並区',
+        scores: { safety: 66, childcare: 64, transport: 62, prices: 54, food: 59 },
+        weather: '午後は雲が広がりやすいですが雨の心配はありません。善福寺川沿いの緑道をウォーキングするのに最適な涼しさです。',
+        trivia: '杉並区は全国有数の『アニメの街』。日本に数百あるアニメ制作会社の実に70%以上が杉並・練馬・武蔵野エリアに集中しています。',
+        insight: '杉並区は「治安・安全度」「交通アクセス」が好成績です。e-Statによる人口あたりの犯罪認知件数が低く、中央線沿線の利便性が評価されています。',
+        pins: [
+          { id: 'shop_manpuku', type: 'shop', label: '萬福 🍜', lat: 90, lng: 210 },
+          { id: 'shop_sugibook', type: 'shop', label: 'スギ書房 📚', lat: 160, lng: 310 },
+          { id: 'post_piano', type: 'post', category: 'giveaway', label: '電子ピアノあります 🎹', lat: 200, lng: 140 }
+        ],
+        aiPresets: [
+          '杉並区のアニメスポットは？',
+          '治安が良いおすすめの地域は？',
+          '美味しいラーメン屋さん教えて',
+          '子育て支援手当について'
+        ]
+      }
+    };
+
+    // Standard baseline database for shops
+    const BASE_SHOPS = {
+      shop_hachibei: {
+        id: 'shop_hachibei',
+        region: 'setagaya',
+        name: '焼き鳥 八兵衛',
+        rating: '4.8',
+        category: 'グルメ',
+        desc: '創業30年、地元の住民に愛され続ける炭火焼き鳥店。秘伝のタレと厳選した国産鶏を使用し、一本一本丁寧に焼き上げています。アットホームな店内でご家族連れも大歓迎！',
+        image: 'https://images.unsplash.com/photo-1561626423-a51b45aef0a1?auto=format&fit=crop&w=400&q=80',
+        distance: '三軒茶屋駅 徒歩3分',
+        coupon: { id: 'cp_hachibei_drink', title: '【限定】ワンドリンク無料クーポン', rules: 'ディナータイムのみ有効。他サービス併用不可。お食事をご注文の方限定。' }
+      },
+      shop_setabun: {
+        id: 'shop_setabun',
+        region: 'setagaya',
+        name: 'セタガヤ文具店',
+        rating: '4.5',
+        category: '小売',
+        desc: 'おしゃれなデザイン文具から定番の学用品まで豊富に取り揃える街の文房具屋さん。定期的に子供向けの手作りクラフトワークショップを開催しています。',
+        image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=400&q=80',
+        distance: '世田谷駅 徒歩2分',
+        coupon: { id: 'cp_setabun_notebook', title: '【学割応援】ノート・鉛筆10%OFF', rules: '学生証ご提示のお客さま限定。文房具類のお会計時のみ有効。' }
+      },
+      shop_manpuku: {
+        id: 'shop_manpuku',
+        region: 'suginami',
+        name: '高円寺ラーメン 萬福',
+        rating: '4.7',
+        category: 'グルメ',
+        desc: '鶏ガラと魚介の旨味を極限まで引き出した、あっさり系醤油ラーメンの名店。特製のとろける豚チャーシューと自家製麺の相性が抜群です！',
+        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=400&q=80',
+        distance: '高円寺駅 徒歩4分',
+        coupon: { id: 'cp_manpuku_topping', title: '【初回限定】味玉トッピング無料', rules: 'ラーメン1杯ご注文のお客さま限定。注文時にスタッフにご提示ください。' }
+      },
+      shop_sugibook: {
+        id: 'shop_sugibook',
+        region: 'suginami',
+        name: 'スギナミ書房',
+        rating: '4.3',
+        category: '小売',
+        desc: 'こだわりの小説、専門書、そして地域の手作りジン（Zine）などを取り扱うアットホームな個人書店。静かな読書スペースで美味しいコーヒーも楽しめます。',
+        image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=400&q=80',
+        distance: '阿佐ヶ谷駅 徒歩5分',
+        coupon: { id: 'cp_sugibook_coffee', title: '【読書特典】ブックカフェブレンド半額', rules: '書籍を1冊以上ご購入いただいたお客さま限定。当日のみ有効。' }
+      }
+    };
+
+    // Standard baseline database for UCG Feed
+    const BASE_FEED = [
+      {
+        id: 'post_notice_setagaya',
+        region: 'setagaya',
+        category: 'notice',
+        author: '世田谷区役所 生活安全課',
+        time: '3時間前',
+        title: '【世田谷区】今週末の防災訓練および避難経路の確認について',
+        desc: '今週土曜日の午前10時より、区内全域で総合防災訓練を実施いたします。第一避難所は世田谷小学校、桜丘中学校となっております。ご近所お誘い合わせの上、避難経路の確認も含めぜひご参加ください。',
+        likes: 24,
+        comments: 0
+      },
+      {
+        id: 'post_qa_cafe',
+        region: 'setagaya',
+        category: 'qa',
+        author: 'みどりママ',
+        time: '昨日',
+        title: '三軒茶屋駅近くで、ベビーカーのまま入れるおすすめのカフェは？',
+        desc: '来週、ママ友と一緒に三軒茶屋周辺でお茶をする予定なのですが、まだ子供が小さくベビーカーのまま入れる広めのお店を探しています。おすすめの場所があればぜひ教えてください！',
+        likes: 12,
+        comments: 2,
+        commentList: [
+          { author: '世田谷レジデント', text: 'マザーズカフェが広々としていてベビーカーのまま入れますよ！おむつ替えスペースもあるのでいつも助かってます。' },
+          { author: '茶沢ママ', text: '栄通り近くのオーガニックカフェもテーブルの間隔が広くておすすめです！' }
+        ]
+      },
+      {
+        id: 'post_trike',
+        region: 'setagaya',
+        category: 'giveaway',
+        author: 'ケンタパパ',
+        time: '2日前',
+        title: '【譲ります】子供用三輪車（2年使用・傷あり・動作良好）',
+        desc: '子供が成長して自転車に乗り換えたため、不要になったアンパンマンの三輪車を無料でお譲りします。室内保管していたためサビはありませんが、屋外使用に伴う小傷があります。等々力駅付近での受け渡しを希望します。',
+        likes: 8,
+        comments: 0
+      },
+      {
+        id: 'post_event_market',
+        region: 'setagaya',
+        category: 'event',
+        author: '世田谷グリーンクラブ',
+        time: '3日前',
+        title: '世田谷みどり公園・週末青空エコマーケット開催のお知らせ！',
+        desc: '今週日曜日、朝9時から「世田谷みどり公園」にて、地域の手作り雑貨、古着、無農薬野菜などが集まるフリーマーケットを開催します！約20ブース出店予定。ピクニックがてらぜひ遊びにきてください！',
+        likes: 15,
+        comments: 0,
+        participants: 6
+      },
+      {
+        id: 'post_notice_suginami',
+        region: 'suginami',
+        category: 'notice',
+        author: '杉並区役所 防災広報課',
+        time: '4時間前',
+        title: '【杉並区】夏の地域クリーンアップ大作戦および美化活動のご案内',
+        desc: '6月10日（日）午前8時より、各自治会と合同で道路や公園の清掃活動を行います。指定ゴミ袋および軍手は、前日までに最寄りの町会館にて配布いたします。きれいな街づくりのため、ご協力よろしくお願いいたします。',
+        likes: 18,
+        comments: 0
+      },
+      {
+        id: 'post_qa_festival',
+        region: 'suginami',
+        category: 'qa',
+        author: '高円寺ハナコ',
+        time: '昨日',
+        title: '阿佐ヶ谷七夕まつりって、ベビーカーで行くと混雑で大変ですか？',
+        desc: '今年初めて阿佐ヶ谷七夕まつりに行こうと考えています。ベビーカーを押して歩くのは混雑的に厳しいでしょうか？比較的空いている曜日や時間帯があれば教えていただきたいです。',
+        likes: 9,
+        comments: 1,
+        commentList: [
+          { author: '阿佐ヶ谷ローカル', text: '平日の午前中の早い時間（10時〜11時半）なら比較的スムーズにベビーカーで歩けますよ！夕方や週末は大変な混雑になるため避けた方が無難です。' }
+        ]
+      },
+      {
+        id: 'post_piano',
+        region: 'suginami',
+        category: 'giveaway',
+        author: 'ショパン大好き',
+        time: '2日前',
+        title: '【譲ります】カシオ電子ピアノ（スタンド・ペダル・椅子付）',
+        desc: '5年ほど前に購入したCASIOのキーボード電子ピアノをお譲りします。すべての鍵盤で音が鳴ることを確認済みです。高円寺駅周辺のマンション4階（エレベーターあり）の自宅まで引き取りに来ていただける方限定でお願いします。',
+        likes: 14,
+        comments: 0
+      }
+    ];
+
+    // --- State Variables ---
+    let state = {
+      activeRegion: 'setagaya',
+      activeTab: 'map',
+      feedFilter: 'all',
+      likedPosts: [],
+      joinedEvents: [],
+      grabbedCoupons: [],
+      activeChats: {},
+      currentChatPartnerId: null,
+      currentChatPostId: null
+    };
+
+    // --- Initialize ---
+    window.addEventListener('DOMContentLoaded', () => {
+      // Re-load lucide icons
+      lucide.createIcons();
+      
+      // Load initial state from LocalStorage if exists
+      loadPersistedState();
+      
+      // Select Initial Area
+      selectArea(state.activeRegion, AREA_DATA[state.activeRegion].name);
+      
+      // Initial Tab Activate
+      switchTab(state.activeTab);
+      
+      // Start listening to Storage Changes for Cross-App live sync
+      window.addEventListener('storage', handleCrossAppSync);
+    });
+
+    // --- Local Storage Persistence ---
+    function saveStateToStorage() {
+      localStorage.setItem('machiview_resident_state', JSON.stringify({
+        activeRegion: state.activeRegion,
+        activeTab: state.activeTab,
+        likedPosts: state.likedPosts,
+        joinedEvents: state.joinedEvents,
+        grabbedCoupons: state.grabbedCoupons,
+        activeChats: state.activeChats
+      }));
+      updateMypageBadges();
+    }
+
+    function loadPersistedState() {
+      const stored = localStorage.getItem('machiview_resident_state');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          state.activeRegion = parsed.activeRegion || 'setagaya';
+          state.activeTab = parsed.activeTab || 'map';
+          state.likedPosts = parsed.likedPosts || [];
+          state.joinedEvents = parsed.joinedEvents || [];
+          state.grabbedCoupons = parsed.grabbedCoupons || [];
+          state.activeChats = parsed.activeChats || {};
+        } catch(e) {
+          console.error("Error loading localStorage state:", e);
+        }
+      }
+      
+      // Initialize coupons database in localStorage if empty (for merchant interaction)
+      if (!localStorage.getItem('machiview_coupons')) {
+        const initialCoupons = {};
+        Object.values(BASE_SHOPS).forEach(s => {
+          if (s.coupon) initialCoupons[s.coupon.id] = { ...s.coupon, shopId: s.id, shopName: s.name, usedCount: 0 };
+        });
+        localStorage.setItem('machiview_coupons', JSON.stringify(initialCoupons));
+      }
+
+      // Initialize analytics database in localStorage if empty
+      if (!localStorage.getItem('machiview_analytics')) {
+        const initialAnalytics = {};
+        Object.keys(BASE_SHOPS).forEach(sid => {
+          initialAnalytics[sid] = { views: 142, calls: 18, routes: 34, couponGets: 8, couponUses: 3 };
+        });
+        localStorage.setItem('machiview_analytics', JSON.stringify(initialAnalytics));
+      }
+
+      // Initialize UGC in localStorage if empty
+      if (!localStorage.getItem('machiview_ugc')) {
+        localStorage.setItem('machiview_ugc', JSON.stringify(BASE_FEED));
+      }
+      
+      updateMypageBadges();
+    }
+
+    function updateMypageBadges() {
+      document.getElementById('grabbedCouponsBadge').textContent = state.grabbedCoupons.length;
+      document.getElementById('mypageChatsBadge').textContent = Object.keys(state.activeChats).length;
+    }
+
+    // --- Cross-App Live Synchronization Listener ---
+    function handleCrossAppSync(event) {
+      if (event.key === 'machiview_ugc') {
+        // Redraw Feed panel if active
+        if (state.activeTab === 'feed') renderFeed();
+        showToast('新しい地域投稿または行政お知らせが配信されました！');
+      } else if (event.key === 'machiview_coupons') {
+        // Redraw Shops lists
+        if (state.activeTab === 'shops') renderShops();
+        showToast('新着の地域限定クーポンが届きました！');
+      }
+    }
+
+    // --- Switch Tab Manager ---
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      
+      // Update UI tabs
+      document.querySelectorAll('.app-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      
+      const panel = document.getElementById(`panel-${tabId}`);
+      const navItem = document.getElementById(`nav-${tabId}`);
+      if (panel && navItem) {
+        panel.classList.add('active');
+        navItem.classList.add('active');
+      }
+      
+      // Special renders on tab activation
+      if (tabId === 'map') {
+        animateScoreBars();
+      } else if (tabId === 'feed') {
+        renderFeed();
+      } else if (tabId === 'shops') {
+        renderShops();
+      } else if (tabId === 'ai') {
+        renderAiPresets();
+      }
+      
+      saveStateToStorage();
+    }
+
+    // --- Area Selector dropdown trigger ---
+    function toggleAreaDropdown() {
+      document.getElementById('areaDropdown').classList.toggle('open');
+    }
+
+    function selectArea(areaKey, areaName) {
+      state.activeRegion = areaKey;
+      document.getElementById('currentAreaText').textContent = areaName;
+      document.getElementById('areaDropdown').classList.remove('open');
+      
+      // Toggle dropdown selected item style
+      document.querySelectorAll('.area-option').forEach(opt => {
+        if (opt.textContent.trim() === areaName) opt.classList.add('selected');
+        else opt.classList.remove('selected');
+      });
+
+      // Update Area Data
+      const ad = AREA_DATA[areaKey];
+      document.getElementById('aiWeatherText').textContent = ad.weather;
+      document.getElementById('aiTriviaText').textContent = ad.trivia;
+      document.getElementById('scoreVal-safety').textContent = ad.scores.safety;
+      document.getElementById('scoreVal-childcare').textContent = ad.scores.childcare;
+      document.getElementById('scoreVal-transport').textContent = ad.scores.transport;
+      document.getElementById('scoreVal-prices').textContent = ad.scores.prices;
+      document.getElementById('scoreVal-food').textContent = ad.scores.food;
+      document.getElementById('scoreAiInsight').textContent = ad.insight;
+
+      // Animate simulated map styles
+      const simulatedMap = document.getElementById('simulatedMap');
+      simulatedMap.className = `simulated-map ${areaKey}`;
+
+      // Re-render components for new area
+      renderMapPins();
+      animateScoreBars();
+      
+      if (state.activeTab === 'feed') renderFeed();
+      if (state.activeTab === 'shops') renderShops();
+      if (state.activeTab === 'ai') {
+        renderAiPresets();
+        // Clear chat thread except welcome message
+        document.getElementById('aiChatMessages').innerHTML = `
+          <div class="chat-bubble ai">
+            こんにちは！「まちビュー」公式AIアシスタントの**まちビュン**です。⚡<br>
+            ${areaName}の行政サービス、子育て情報、おすすめスポット、街の統計について何でも聞いてください！
+          </div>
+        `;
+      }
+
+      saveStateToStorage();
+    }
+
+    // Animate the e-Stat Deviation Score Bars
+    function animateScoreBars() {
+      const scores = AREA_DATA[state.activeRegion].scores;
+      setTimeout(() => {
+        Object.keys(scores).forEach(k => {
+          const bar = document.getElementById(`scoreBar-${k}`);
+          if (bar) bar.style.width = `${scores[k]}%`;
+        });
+      }, 50);
+    }
+
+    // --- Render Map Pins ---
+    function renderMapPins() {
+      const container = document.getElementById('mapPinsContainer');
+      container.innerHTML = '';
+      
+      const pins = AREA_DATA[state.activeRegion].pins;
+      pins.forEach(p => {
+        const pinEl = document.createElement('div');
+        pinEl.className = 'map-pin';
+        pinEl.style.top = `${p.lat}px`;
+        pinEl.style.left = `${p.lng}px`;
+        
+        let iconMarkup = '<i data-lucide="ticket" style="width:16px; height:16px;"></i>';
+        let customClass = '';
+        if (p.type === 'post') {
+          customClass = 'accent';
+          iconMarkup = '<i data-lucide="message-square" style="width:16px; height:16px;"></i>';
+        }
+        
+        pinEl.innerHTML = `
+          <div class="pin-circle pulse ${customClass}">
+            ${iconMarkup}
+          </div>
+          <div class="pin-triangle"></div>
+          <div class="pin-label">${p.label}</div>
+        `;
+        
+        pinEl.addEventListener('click', () => handlePinClick(p.id, p.type));
+        container.appendChild(pinEl);
+      });
+      lucide.createIcons();
+    }
+
+    function handlePinClick(id, type) {
+      if (type === 'shop') {
+        openShopDetail(id);
+      } else {
+        // Go to feed tab and scroll to post id
+        switchTab('feed');
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+      }
+    }
+
+    // --- Render UGC Community Feed ---
+    function renderFeed() {
+      const container = document.getElementById('ugcFeedContainer');
+      container.innerHTML = '';
+      
+      const allPosts = JSON.parse(localStorage.getItem('machiview_ugc')) || BASE_FEED;
+      // Filter by active region and selected category
+      let filtered = allPosts.filter(p => p.region === state.activeRegion);
+      
+      if (state.feedFilter !== 'all') {
+        filtered = filtered.filter(p => p.category === state.feedFilter);
+      }
+
+      // Prepend official notice if exists to the top
+      filtered.sort((a, b) => {
+        if (a.category === 'notice') return -1;
+        if (b.category === 'notice') return 1;
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card" style="text-align: center; padding: 36px 18px; color: var(--text-muted);">
+            <i data-lucide="inbox" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
+            <div style="font-size: 0.85rem; font-weight: 700;">投稿はまだありません</div>
+            <div style="font-size: 0.76rem; margin-top: 4px;">最初の質問や譲り合いを投稿してみましょう！</div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(p => {
+        const isLiked = state.likedPosts.includes(p.id);
+        const card = document.createElement('div');
+        card.className = `glass-card feed-item ${p.category === 'notice' ? 'admin-notice' : ''}`;
+        card.id = p.id;
+        
+        let badgeText = 'お知らせ';
+        if (p.category === 'qa') badgeText = '質問・相談';
+        if (p.category === 'giveaway') badgeText = '譲り合い';
+        if (p.category === 'event') badgeText = 'イベント';
+
+        let giveawayAction = '';
+        if (p.category === 'giveaway') {
+          giveawayAction = `
+            <button class="btn btn-secondary btn-sm" style="margin-top: 10px; font-size: 0.74rem; padding: 6px 14px; width: auto;" onclick="startDmChat('${p.id}', '${p.author}')">
+              <i data-lucide="message-square" style="width: 14px; height: 14px;"></i> お譲り交渉の連絡をする
+            </button>
+          `;
+        }
+
+        let eventAction = '';
+        if (p.category === 'event') {
+          const isJoined = state.joinedEvents.includes(p.id);
+          eventAction = `
+            <button class="btn ${isJoined ? 'btn-secondary' : 'btn-primary'} btn-sm" style="margin-top: 10px; font-size: 0.74rem; padding: 6px 14px; width: auto;" onclick="toggleJoinEvent('${p.id}')" id="eventJoin-${p.id}">
+              <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+              <span>${isJoined ? '参加をキャンセル' : 'このイベントに参加する'}</span>
+            </button>
+            <div style="font-size: 0.74rem; font-weight: 700; color: var(--primary-hover); margin-top: 8px;" id="eventCount-${p.id}">
+              参加表明: ${p.participants || 0}名
+            </div>
+          `;
+        }
+
+        let qnaThread = '';
+        if (p.category === 'qa' && p.commentList && p.commentList.length > 0) {
+          qnaThread = `
+            <div style="background: var(--bg-app); border-radius: var(--radius-sm); padding: 10px; margin-top: 12px; border: 1px solid var(--border);">
+              <div style="font-size: 0.74rem; font-weight: 800; color: var(--primary-hover); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="reply" style="width: 12px; height: 12px;"></i> 回答 (${p.commentList.length})
+              </div>
+              ${p.commentList.map(c => `
+                <div style="font-size: 0.78rem; line-height: 1.45; margin-bottom: 6px; border-bottom: 1px dashed var(--border); padding-bottom: 4px;">
+                  <strong style="color: var(--text);">${c.author}:</strong> <span style="color: var(--text-muted);">${c.text}</span>
+                </div>
+              `).join('')}
+              <div style="display:flex; gap:6px; margin-top: 8px;">
+                <input type="text" class="chat-input" placeholder="回答を入力..." style="padding: 6px 12px; font-size: 0.74rem; background:#fff;" id="qaInput-${p.id}">
+                <button class="chat-send-btn" style="width:28px; height:28px;" onclick="addQaComment('${p.id}')">
+                  <i data-lucide="arrow-up" style="width: 14px; height: 14px;"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        } else if (p.category === 'qa') {
+          // QA placeholder when empty
+          qnaThread = `
+            <div style="display:flex; gap:6px; margin-top: 12px;">
+              <input type="text" class="chat-input" placeholder="回答を入力..." style="padding: 6px 12px; font-size: 0.74rem; background:#fff;" id="qaInput-${p.id}">
+              <button class="chat-send-btn" style="width:28px; height:28px;" onclick="addQaComment('${p.id}')">
+                <i data-lucide="arrow-up" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <span class="feed-badge badge-${p.category}">${badgeText}</span>
+          <div class="feed-meta">
+            <div class="feed-avatar">${p.author[0]}</div>
+            <strong>${p.author}</strong>
+            <span style="opacity: 0.7;">&bull; ${p.time}</span>
+          </div>
+          <div class="feed-title">${p.title}</div>
+          <div class="feed-desc">${p.desc}</div>
+          ${giveawayAction}
+          ${eventAction}
+          ${qnaThread}
+          
+          <div class="divider"></div>
+          
+          <div class="feed-actions">
+            <button class="feed-action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLikePost('${p.id}')" id="likeBtn-${p.id}">
+              <i data-lucide="heart" style="width: 16px; height: 16px; fill: ${isLiked ? 'currentColor' : 'none'};"></i>
+              <span id="likeCount-${p.id}">${p.likes}</span>
+            </button>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function filterFeed(category) {
+      state.feedFilter = category;
+      document.querySelectorAll('.feed-tab-btn').forEach(btn => {
+        if (btn.textContent.trim().includes(category === 'all' ? 'すべて' : category === 'notice' ? '行政告知' : category === 'qa' ? '質問' : category === 'giveaway' ? '譲り合い' : 'イベント')) {
+          btn.classList.add('active');
+        } else btn.classList.remove('active');
+      });
+      renderFeed();
+    }
+
+    function toggleLikePost(postId) {
+      const idx = state.likedPosts.indexOf(postId);
+      const allPosts = JSON.parse(localStorage.getItem('machiview_ugc')) || BASE_FEED;
+      const post = allPosts.find(p => p.id === postId);
+      if (!post) return;
+
+      const btn = document.getElementById(`likeBtn-${postId}`);
+      const countEl = document.getElementById(`likeCount-${postId}`);
+
+      if (idx === -1) {
+        state.likedPosts.push(postId);
+        post.likes += 1;
+        btn.classList.add('liked');
+        btn.querySelector('i').setAttribute('fill', 'currentColor');
+      } else {
+        state.likedPosts.splice(idx, 1);
+        post.likes -= 1;
+        btn.classList.remove('liked');
+        btn.querySelector('i').setAttribute('fill', 'none');
+      }
+
+      countEl.textContent = post.likes;
+      localStorage.setItem('machiview_ugc', JSON.stringify(allPosts));
+      saveStateToStorage();
+    }
+
+    function toggleJoinEvent(eventId) {
+      const idx = state.joinedEvents.indexOf(eventId);
+      const allPosts = JSON.parse(localStorage.getItem('machiview_ugc')) || BASE_FEED;
+      const post = allPosts.find(p => p.id === eventId);
+      if (!post) return;
+
+      const btn = document.getElementById(`eventJoin-${eventId}`);
+      const countEl = document.getElementById(`eventCount-${eventId}`);
+
+      if (idx === -1) {
+        state.joinedEvents.push(eventId);
+        post.participants = (post.participants || 0) + 1;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-secondary');
+        btn.querySelector('span').textContent = '参加をキャンセル';
+        showToast('イベントの参加表明を送信しました！');
+      } else {
+        state.joinedEvents.splice(idx, 1);
+        post.participants = Math.max(0, (post.participants || 0) - 1);
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-primary');
+        btn.querySelector('span').textContent = 'このイベントに参加する';
+      }
+
+      countEl.textContent = `参加表明: ${post.participants}名`;
+      localStorage.setItem('machiview_ugc', JSON.stringify(allPosts));
+      saveStateToStorage();
+    }
+
+    function addQaComment(postId) {
+      const input = document.getElementById(`qaInput-${postId}`);
+      if (!input || !input.value.trim()) return;
+
+      const text = input.value.trim();
+      const allPosts = JSON.parse(localStorage.getItem('machiview_ugc')) || BASE_FEED;
+      const post = allPosts.find(p => p.id === postId);
+      if (post) {
+        if (!post.commentList) post.commentList = [];
+        post.commentList.push({ author: '住民メンバー', text: text });
+        post.comments = post.commentList.length;
+        localStorage.setItem('machiview_ugc', JSON.stringify(allPosts));
+        input.value = '';
+        renderFeed();
+        showToast('回答を送信しました！');
+      }
+    }
+
+    // Submit Custom post added by "+" FAB button
+    function submitCustomPost(event) {
+      event.preventDefault();
+      const cat = document.getElementById('postCategory').value;
+      const title = document.getElementById('postTitle').value;
+      const desc = document.getElementById('postDesc').value;
+
+      const newPost = {
+        id: `custom_post_${Date.now()}`,
+        region: state.activeRegion,
+        category: cat,
+        author: '住民メンバー',
+        time: 'たった今',
+        title: title,
+        desc: desc,
+        likes: 0,
+        comments: 0
+      };
+
+      const allPosts = JSON.parse(localStorage.getItem('machiview_ugc')) || BASE_FEED;
+      allPosts.unshift(newPost);
+      localStorage.setItem('machiview_ugc', JSON.stringify(allPosts));
+
+      // Reset Form and close
+      document.getElementById('ugcPostForm').reset();
+      closeBottomSheet('sheetPostUgc');
+      
+      // Refresh feed tab
+      renderFeed();
+      showToast('新しい投稿を配信しました！');
+    }
+
+    // --- Render Shops and active coupons list ---
+    function renderShops() {
+      const container = document.getElementById('shopsListContainer');
+      container.innerHTML = '';
+      
+      const query = document.getElementById('shopSearchInput').value.toLowerCase().trim();
+      const activeCoupons = JSON.parse(localStorage.getItem('machiview_coupons')) || {};
+      
+      // Filter standard shops for active region
+      const shops = Object.values(BASE_SHOPS).filter(s => s.region === state.activeRegion);
+      
+      let filtered = shops;
+      if (query !== '') {
+        filtered = shops.filter(s => s.name.toLowerCase().includes(query) || s.category.toLowerCase().includes(query));
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card" style="text-align: center; padding: 36px 18px; color: var(--text-muted);">
+            <i data-lucide="search-code" style="width: 32px; height: 32px; margin-bottom: 8px;"></i>
+            <div style="font-size: 0.85rem; font-weight: 700;">店舗が見つかりません</div>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      filtered.forEach(s => {
+        // Find if this shop has active coupons
+        const shopCoupon = Object.values(activeCoupons).find(c => c.shopId === s.id);
+        let couponAlert = '';
+        if (shopCoupon) {
+          couponAlert = `
+            <div class="shop-coupon-alert">
+              <i data-lucide="ticket" style="width: 12px; height: 12px;"></i>
+              <span>特典: ${shopCoupon.title}</span>
+            </div>
+          `;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'glass-card shop-card';
+        card.innerHTML = `
+          <div class="shop-img" style="background-image: url('${s.image}');"></div>
+          <div class="shop-info">
+            <div class="shop-header">
+              <span class="shop-name">${s.name}</span>
+              <span class="shop-rating"><i data-lucide="star" style="width: 12px; height: 12px; fill: currentColor;"></i> ${s.rating}</span>
+            </div>
+            <span class="shop-cat-dist">${s.category} &bull; ${s.distance}</span>
+            ${couponAlert}
+          </div>
+        `;
+        
+        card.addEventListener('click', () => openShopDetail(s.id));
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function handleShopSearch() {
+      renderShops();
+    }
+
+    // --- Open Shop detail slide up sheet ---
+    function openShopDetail(shopId) {
+      const s = BASE_SHOPS[shopId];
+      if (!s) return;
+
+      document.getElementById('sheetShopName').textContent = s.name;
+      document.getElementById('sheetShopImg').style.backgroundImage = `url('${s.image}')`;
+      document.getElementById('sheetShopCat').innerHTML = `${s.category} &bull; ${s.distance}`;
+      document.getElementById('sheetShopRating').innerHTML = `<i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor;"></i> ${s.rating}`;
+      document.getElementById('sheetShopDesc').textContent = s.desc;
+
+      // Handle Coupon Section
+      const couponSection = document.getElementById('sheetShopCouponSection');
+      couponSection.innerHTML = '';
+
+      const activeCoupons = JSON.parse(localStorage.getItem('machiview_coupons')) || {};
+      const shopCoupon = Object.values(activeCoupons).find(c => c.shopId === s.id);
+
+      if (shopCoupon) {
+        const isGrabbed = state.grabbedCoupons.includes(shopCoupon.id);
+        
+        couponSection.innerHTML = `
+          <div style="background: var(--primary-soft); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 14px; margin-top: 8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:4px;">
+                <i data-lucide="tag" style="width:12px; height:12px;"></i> 地域住民限定クーポン
+              </span>
+              ${isGrabbed ? '<span style="font-size:0.68rem; font-weight:800; background:var(--primary); color:#fff; padding:2px 8px; border-radius:99px;">取得済み</span>' : ''}
+            </div>
+            <div style="font-size: 0.95rem; font-weight: 800; color: var(--primary-hover); margin-bottom: 6px;">${shopCoupon.title}</div>
+            <div style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 12px;">${shopCoupon.rules}</div>
+            
+            <button class="btn btn-primary" id="grabBtn-${shopCoupon.id}" onclick="grabCoupon('${shopCoupon.id}', '${s.id}')">
+              <i data-lucide="${isGrabbed ? 'eye' : 'download'}" style="width: 16px; height: 16px;"></i>
+              <span>${isGrabbed ? '使用画面を開く (QR表示)' : 'クーポンを取得する'}</span>
+            </button>
+          </div>
+        `;
+      } else {
+        couponSection.innerHTML = `
+          <div style="text-align:center; padding: 12px; border: 1px dashed var(--border); border-radius: var(--radius-md); color: var(--text-muted); font-size: 0.8rem;">
+            現在配信中のクーポンはありません
+          </div>
+        `;
+      }
+
+      // Record metric "views" in localStorage
+      incrementShopMetric('views', shopId);
+
+      openBottomSheet('sheetShopDetail');
+      lucide.createIcons();
+    }
+
+    // Increment telephone/route metrics to persist in CMS
+    function incrementShopMetric(metricType, directShopId = null) {
+      // Find active shop name in sheet if not direct
+      let shopId = directShopId;
+      if (!shopId) {
+        const activeName = document.getElementById('sheetShopName').textContent;
+        const activeShop = Object.values(BASE_SHOPS).find(s => s.name === activeName);
+        if (activeShop) shopId = activeShop.id;
+      }
+      if (!shopId) return;
+
+      const analytics = JSON.parse(localStorage.getItem('machiview_analytics')) || {};
+      if (!analytics[shopId]) analytics[shopId] = { views: 0, calls: 0, routes: 0, couponGets: 0, couponUses: 0 };
+      analytics[shopId][metricType]++;
+      localStorage.setItem('machiview_analytics', JSON.stringify(analytics));
+
+      if (metricType === 'calls') {
+        showToast('電話番号発信をシミュレートしました');
+      } else if (metricType === 'routes') {
+        showToast('マップでの経路検索を記録しました');
+      }
+    }
+
+    // Grab Coupon Actions
+    function grabCoupon(couponId, shopId) {
+      const idx = state.grabbedCoupons.indexOf(couponId);
+      
+      if (idx === -1) {
+        state.grabbedCoupons.push(couponId);
+        showToast('クーポンを取得しました！マイページに保存されました。');
+        
+        // Log "couponGets" in analytics
+        incrementShopMetric('couponGets', shopId);
+        
+        // Refresh Shop Detail Bottom Sheet coupon interface
+        openShopDetail(shopId);
+      } else {
+        // Coupon already grabbed, launch QR use screen
+        closeBottomSheet('sheetShopDetail');
+        setTimeout(() => {
+          const activeCoupons = JSON.parse(localStorage.getItem('machiview_coupons')) || {};
+          const cp = activeCoupons[couponId];
+          if (cp) {
+            document.getElementById('qrCouponTitle').textContent = cp.title;
+            document.getElementById('qrShopName').textContent = cp.shopName;
+            // Save active coupon being used globally
+            state.activeCouponInUse = couponId;
+            openBottomSheet('sheetCouponQr');
+          }
+        }, 150);
+      }
+      saveStateToStorage();
+    }
+
+    function confirmUseCoupon() {
+      const couponId = state.activeCouponInUse;
+      if (!couponId) return;
+      
+      const activeCoupons = JSON.parse(localStorage.getItem('machiview_coupons')) || {};
+      const cp = activeCoupons[couponId];
+      if (cp) {
+        // Log "couponUses" in shop analytics
+        incrementShopMetric('couponUses', cp.shopId);
+        
+        // Remove from user active grabbed list
+        const idx = state.grabbedCoupons.indexOf(couponId);
+        if (idx !== -1) state.grabbedCoupons.splice(idx, 1);
+        
+        closeBottomSheet('sheetCouponQr');
+        showToast('クーポンを正常に使用しました！');
+        
+        // Increment use counter inside coupons DB (for merchant CMS history)
+        cp.usedCount = (cp.usedCount || 0) + 1;
+        localStorage.setItem('machiview_coupons', JSON.stringify(activeCoupons));
+      }
+      state.activeCouponInUse = null;
+      saveStateToStorage();
+    }
+
+    // --- PANEL: MACHI BYUN AI CHAT LOGIC ---
+    function renderAiPresets() {
+      const container = document.getElementById('aiPresetChips');
+      container.innerHTML = '';
+      const presets = AREA_DATA[state.activeRegion].aiPresets;
+      presets.forEach(p => {
+        const chip = document.createElement('div');
+        chip.className = 'preset-chip';
+        chip.textContent = p;
+        chip.addEventListener('click', () => {
+          document.getElementById('chatInput').value = p;
+          sendUserMessage();
+        });
+        container.appendChild(chip);
+      });
+    }
+
+    function sendUserMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (text === '') return;
+
+      const viewport = document.getElementById('aiChatMessages');
+      
+      // 1. Append User Bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-bubble user';
+      userBubble.textContent = text;
+      viewport.appendChild(userBubble);
+      input.value = '';
+      
+      // Auto Scroll
+      viewport.scrollTop = viewport.scrollHeight;
+
+      // 2. Append AI Typing Indicator
+      const aiBubble = document.createElement('div');
+      aiBubble.className = 'chat-bubble ai';
+      aiBubble.innerHTML = `
+        <div class="typing-loader">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      `;
+      viewport.appendChild(aiBubble);
+      viewport.scrollTop = viewport.scrollHeight;
+
+      // 3. Generate Mock Response based on keywords
+      setTimeout(() => {
+        let reply = '';
+        const lowercaseText = text.toLowerCase();
+        
+        if (lowercaseText.includes('子育て') || lowercaseText.includes('育児') || lowercaseText.includes('こども')) {
+          if (state.activeRegion === 'setagaya') {
+            reply = '世田谷区では、待機児童数ゼロ化に向けた保育施設の増設が実を結び、子育て環境偏差値は**68**と都内最高水準です。また、「子ども家庭支援センター」での一時預かりサービスや、フィンランド式ネウボラを導入した手厚い健康相談体制が強みです。';
+          } else {
+            reply = '杉並区の子育て環境偏差値は**64**です。「杉並区子育て応援券」という区独自の制度があり、一時預かりや子育て相談サービス等に利用できるチケットが支給されます。また、善福寺川公園など自然豊かな遊び場が多くファミリー層に大人気です。';
+          }
+        } else if (lowercaseText.includes('避難') || lowercaseText.includes('防災') || lowercaseText.includes('地震') || lowercaseText.includes('訓練')) {
+          if (state.activeRegion === 'setagaya') {
+            reply = '世田谷区では、震災時の第一避難所として区立小学校（世田谷小学校、桜丘中学校など）が指定されています。e-Statベースの治安・防災スコアは**62**と安定しています。また、木造住宅密集地域の不燃化リフォーム助成金制度が充実しています。';
+          } else {
+            reply = '杉並区の安全・防災スコアは**66**と極めて良好です。善福寺川沿いの調節池整備が進んでおり、水害ハザードマップ上での安全性が高まっています。広域避難場所としては都立和田堀公園などが指定されています。';
+          }
+        } else if (lowercaseText.includes('焼き鳥') || lowercaseText.includes('ラーメン') || lowercaseText.includes('美味しい') || lowercaseText.includes('グルメ')) {
+          if (state.activeRegion === 'setagaya') {
+            reply = '三軒茶屋周辺のグルメなら、まちビューおすすめ店舗に掲載中の**「焼き鳥 八兵衛」**（★4.8）が一押しです！今なら初回限定の**「ワンドリンク無料クーポン」**が配信されていますので、店舗タブからぜひチェックしてみてください！';
+          } else {
+            reply = '高円寺はラーメンの激戦区です！特におすすめなのが**「高円寺ラーメン 萬福」**（★4.7）で、旨みたっぷりの鶏ガラ醤油スープが絶品です。現在、初回限定の**「味玉トッピング無料クーポン」**を配信中ですので、店舗タブをご確認ください。';
+          }
+        } else {
+          reply = `${AREA_DATA[state.activeRegion].name}に関するご質問ですね！まちビューの公的e-Stat統計データによると、このエリアは非常に住み心地が良い特徴をバランスよく備えています。近隣のアクティビティ（フィードのイベント）や、お得なクーポン（店舗タブ）に街のリアルな接点がたくさんありますので、ぜひ活用してみてください。⚡`;
+        }
+
+        aiBubble.innerHTML = reply;
+        viewport.scrollTop = viewport.scrollHeight;
+      }, 1200);
+    }
+
+    // --- DM/CHAT WORKFLOW FOR GIVEAWAY ITEMS ---
+    function startDmChat(postId, authorName) {
+      // Find the associated post title
+      const allPosts = JSON.parse(localStorage.getItem('machiview_ugc')) || BASE_FEED;
+      const post = allPosts.find(p => p.id === postId);
+      if (!post) return;
+
+      state.currentChatPartnerId = authorName;
+      state.currentChatPostId = postId;
+      document.getElementById('sheetChatPartnerName').textContent = `${authorName} (譲り合い窓口)`;
+
+      // Load thread or create default
+      if (!state.activeChats[postId]) {
+        state.activeChats[postId] = {
+          partner: authorName,
+          messages: [
+            { sender: 'partner', text: `はじめまして！「${post.title}」のお問い合わせありがとうございます。まだお譲り先は決まっておりませんので、ご質問や引き渡し日程のご相談などお気軽にどうぞ！` }
+          ]
+        };
+      }
+
+      renderDmThread();
+      closeBottomSheet('sheetShopDetail');
+      openBottomSheet('sheetChatDm');
+      
+      saveStateToStorage();
+    }
+
+    function renderDmThread() {
+      const container = document.getElementById('sheetChatMessages');
+      container.innerHTML = '';
+      
+      const thread = state.activeChats[state.currentChatPostId];
+      if (!thread) return;
+
+      thread.messages.forEach(m => {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${m.sender === 'user' ? 'user' : 'ai'}`;
+        bubble.textContent = m.text;
+        container.appendChild(bubble);
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function sendDmMessage() {
+      const input = document.getElementById('sheetChatInput');
+      const text = input.value.trim();
+      if (text === '') return;
+
+      const thread = state.activeChats[state.currentChatPostId];
+      if (!thread) return;
+
+      // 1. Add User Message
+      thread.messages.push({ sender: 'user', text: text });
+      renderDmThread();
+      input.value = '';
+
+      // 2. Generate simulated delay response
+      setTimeout(() => {
+        thread.messages.push({ sender: 'partner', text: 'ご連絡ありがとうございます！引き渡しのご希望日時と、等々力駅周辺での引き渡しで問題ないかお教えいただけますでしょうか？よろしくお願いいたします。' });
+        renderDmThread();
+        saveStateToStorage();
+      }, 1000);
+
+      saveStateToStorage();
+    }
+
+    // --- MY PAGE SHEETS RENDERING ---
+    // 1. Grabbed coupons list sheet
+    function openGrabbedCouponsSheet() {
+      const container = document.getElementById('grabbedCouponsListContainer');
+      container.innerHTML = '';
+      
+      const activeCoupons = JSON.parse(localStorage.getItem('machiview_coupons')) || {};
+      const grabbed = state.grabbedCoupons;
+
+      if (grabbed.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:32px 12px; color:var(--text-muted); font-size:0.85rem;">
+            取得済みのクーポンはありません。<br>「店舗・クーポン」タブからクーポンを取得してみましょう！
+          </div>
+        `;
+        return;
+      }
+
+      grabbed.forEach(cid => {
+        const cp = activeCoupons[cid];
+        if (!cp) return;
+
+        const card = document.createElement('div');
+        card.className = 'glass-card';
+        card.style.borderLeft = '4px solid var(--primary)';
+        card.innerHTML = `
+          <div style="font-size:0.75rem; font-weight:800; color:var(--primary); margin-bottom:4px;">${cp.shopName}</div>
+          <div style="font-size:0.9rem; font-weight:800; margin-bottom:6px;">${cp.title}</div>
+          <button class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:6px 14px; width:auto;" onclick="openCouponUseScreen('${cid}', '${cp.shopName}', '${cp.title}')">
+            <i data-lucide="eye" style="width:14px; height:14px;"></i> クーポンを使用する
+          </button>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function openCouponUseScreen(cid, shopName, title) {
+      closeBottomSheet('sheetGrabbedCoupons');
+      setTimeout(() => {
+        document.getElementById('qrCouponTitle').textContent = title;
+        document.getElementById('qrShopName').textContent = shopName;
+        state.activeCouponInUse = cid;
+        openBottomSheet('sheetCouponQr');
+      }, 150);
+    }
+
+    // 2. Active chats list sheet
+    function openActiveChatsSheet() {
+      const container = document.getElementById('activeChatsListContainer');
+      container.innerHTML = '';
+
+      const chats = Object.keys(state.activeChats);
+      if (chats.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:32px 12px; color:var(--text-muted); font-size:0.85rem;">
+            進行中のチャットはありません。
+          </div>
+        `;
+        return;
+      }
+
+      chats.forEach(pid => {
+        const chat = state.activeChats[pid];
+        const card = document.createElement('div');
+        card.className = 'glass-card';
+        card.innerHTML = `
+          <div style="font-weight:800; font-size:0.9rem; margin-bottom:4px;">お相手: ${chat.partner}</div>
+          <div style="font-size:0.78rem; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; margin-bottom:8px;">
+            最後: ${chat.messages[chat.messages.length - 1].text}
+          </div>
+          <button class="btn btn-secondary btn-sm" style="font-size:0.74rem; padding:6px 14px; width:auto;" onclick="resumeChat('${pid}')">
+            <i data-lucide="message-square" style="width:14px; height:14px;"></i> チャットを再開する
+          </button>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function resumeChat(postId) {
+      closeBottomSheet('sheetActiveChats');
+      setTimeout(() => {
+        const chat = state.activeChats[postId];
+        if (chat) {
+          state.currentChatPartnerId = chat.partner;
+          state.currentChatPostId = postId;
+          document.getElementById('sheetChatPartnerName').textContent = `${chat.partner} (譲り合い窓口)`;
+          renderDmThread();
+          openBottomSheet('sheetChatDm');
+        }
+      }, 150);
+    }
+
+    // --- Bottom Sheet Animations Helper ---
+    function openBottomSheet(sheetId) {
+      document.getElementById('appOverlay').classList.add('open');
+      document.getElementById(sheetId).classList.add('open');
+      
+      // Special dynamic hooks when sheets are opened
+      if (sheetId === 'sheetGrabbedCoupons') openGrabbedCouponsSheet();
+      if (sheetId === 'sheetActiveChats') openActiveChatsSheet();
+    }
+
+    function closeBottomSheet(sheetId) {
+      document.getElementById(sheetId).classList.remove('open');
+      
+      // Only close overlay if no other sheet is open
+      const openSheets = document.querySelectorAll('.bottom-sheet.open');
+      if (openSheets.length === 0) {
+        document.getElementById('appOverlay').classList.remove('open');
+      }
+    }
+
+    function closeAllSheets() {
+      document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('open'));
+      document.getElementById('appOverlay').classList.remove('open');
+    }
+
+    // --- Toast Notifications System ---
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      document.getElementById('toastText').textContent = message;
+      container.classList.add('show');
+      setTimeout(() => {
+        container.classList.remove('show');
+      }, 3000);
+    }
+
+    function showNotificationToast() {
+      showToast('新着の通知はありません');
+    }
+
+    function showSimpleAlert(title, content) {
+      alert(`${title}\n\n${content}`);
+    }
+
+    // AI Weather/Trivia Log modal launcher
+    function showAILogModal(type) {
+      const isWeather = type === 'weather';
+      const promptText = isWeather 
+        ? `ROLE: 地域気象コンテンツAIライター\nINPUT: e-Stat地域識別子, Mapbox座標, リアルタイム天気APIフィード\nINSTRUCTION: ${state.activeRegion === 'setagaya' ? '世田谷区' : '杉並区'}の今朝の気候傾向をもとに、住民に寄り添う親しみやすい1〜2文のローカルお出かけ気候コメントを自動生成せよ。`
+        : `ROLE: 地域歴史文化AI探究員\nINPUT: 自治体郷土史アーカイブ, 地元メディア, e-Statデータ\nINSTRUCTION: ${state.activeRegion === 'setagaya' ? '世田谷区' : '杉並区'}に関して、住民の地域リテラシーを高める意外かつ実用的な歴史的豆知識・地名由来を1〜2文で生成せよ。`;
+      
+      const resultText = isWeather 
+        ? AREA_DATA[state.activeRegion].weather 
+        : AREA_DATA[state.activeRegion].trivia;
+
+      document.getElementById('sheetAILogTitle').textContent = isWeather ? 'AI自動天気生成 ログ詳細' : 'AI街の豆知識生成 ログ詳細';
+      document.getElementById('sheetAILogPrompt').textContent = promptText;
+      document.getElementById('sheetAILogResult').textContent = resultText;
+
+      openBottomSheet('sheetAILogDetails');
+    }
+  </script>
+</body>
+</html>
