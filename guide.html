@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GitHub PagesでHTMLを公開する手順</title>
+  <style>
+    :root {
+      --navy: #17233c;
+      --blue: #2f6feb;
+      --pale: #eef4ff;
+      --green: #16803c;
+      --ink: #202938;
+      --muted: #667085;
+      --line: #d8dee8;
+      --paper: #ffffff;
+      --back: #f4f6fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--back);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans JP", sans-serif;
+      line-height: 1.75;
+    }
+
+    header {
+      color: white;
+      background: linear-gradient(135deg, var(--navy), #294d87);
+      padding: 64px 24px 58px;
+    }
+
+    .header-inner,
+    main {
+      width: min(920px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #bcd1ff;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 48px);
+      line-height: 1.25;
+    }
+
+    .lead {
+      max-width: 720px;
+      margin: 16px 0 0;
+      color: #e2eaff;
+      font-size: 18px;
+    }
+
+    main {
+      padding: 40px 0 72px;
+    }
+
+    .summary,
+    .step,
+    .result {
+      margin-bottom: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+      box-shadow: 0 8px 26px rgba(23, 35, 60, .06);
+    }
+
+    .summary,
+    .result {
+      padding: 26px 30px;
+    }
+
+    .summary h2,
+    .result h2 {
+      margin: 0 0 12px;
+      color: var(--navy);
+      font-size: 22px;
+    }
+
+    .summary ol {
+      margin: 0;
+      padding-left: 24px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      overflow: hidden;
+    }
+
+    .step-number {
+      display: grid;
+      place-items: start center;
+      padding-top: 27px;
+      color: white;
+      background: var(--blue);
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .step-body {
+      padding: 24px 28px 28px;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      color: var(--navy);
+      font-size: 22px;
+    }
+
+    p { margin: 8px 0; }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #edf1f7;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 16px 0 4px;
+      padding: 17px 19px;
+      border-radius: 10px;
+      color: #edf4ff;
+      background: #111827;
+      line-height: 1.6;
+    }
+
+    pre code {
+      padding: 0;
+      color: inherit;
+      background: transparent;
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 12px 15px;
+      border-left: 4px solid var(--blue);
+      background: var(--pale);
+      font-size: 14px;
+    }
+
+    figure {
+      margin: 22px 0 4px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    figcaption {
+      padding: 10px 6px 3px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .success {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    a {
+      color: var(--blue);
+      overflow-wrap: anywhere;
+    }
+
+    .result {
+      border-color: #acd8ba;
+      background: #f4fcf6;
+    }
+
+    .result ul {
+      margin: 10px 0 0;
+      padding-left: 23px;
+    }
+
+    footer {
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 620px) {
+      header { padding: 45px 20px; }
+      .step { grid-template-columns: 56px 1fr; }
+      .step-number { padding-top: 24px; font-size: 24px; }
+      .step-body { padding: 21px 20px 24px; }
+      .summary, .result { padding: 22px; }
+    }
+
+    @media print {
+      body { background: white; }
+      header { padding: 36px 24px; }
+      main { padding: 24px 0; }
+      .summary, .step, .result {
+        break-inside: avoid;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <p class="eyebrow">かんたん公開ガイド</p>
+      <h1>GitHub Pagesで<br>HTMLを公開する手順</h1>
+      <p class="lead">
+        ターミナルやプログラムは使いません。GitHubの画面をクリックして、
+        手元のHTMLファイルをインターネット上に無料公開する方法です。
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary">
+      <h2>全体の流れ</h2>
+      <ol>
+        <li>HTMLファイルの名前を「index.html」にする</li>
+        <li>GitHubにログインする</li>
+        <li>公開用の置き場所を作る</li>
+        <li>HTMLファイルをアップロードする</li>
+        <li>GitHub Pagesを有効にする</li>
+        <li>表示されたURLを開く</li>
+      </ol>
+      <div class="note">
+        所要時間の目安は5〜10分です。GitHubアカウントを持っていない場合は、
+        最初に無料アカウントを作成してください。
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-number">1</div>
+      <div class="step-body">
+        <h3>ファイル名を「index.html」にする</h3>
+        <p>Finderで、公開したいHTMLファイルがあるフォルダを開きます。</p>
+        <p>
+          今回は <code>resident.html</code> を選択し、コピーを作って、
+          コピーしたファイルの名前を <code>index.html</code> に変更します。
+        </p>
+        <ol>
+          <li><code>resident.html</code> を右クリックする</li>
+          <li>「複製」をクリックする</li>
+          <li>複製したファイルを右クリックして「名前を変更」をクリックする</li>
+          <li>名前を <code>index.html</code> にする</li>
+        </ol>
+        <p>
+          「拡張子を変更してもよろしいですか？」と表示された場合は、
+          <strong>“.html”を使用</strong>を選びます。
+        </p>
+        <div class="note">
+          元の <code>resident.html</code> は残しておきます。
+          GitHub Pagesは <code>index.html</code> を最初のページとして表示します。
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-number">2</div>
+      <div class="step-body">
+        <h3>GitHubにログイン</h3>
+        <ol>
+          <li>
+            ブラウザで
+            <a href="https://github.com/">https://github.com/</a>
+            を開く
+          </li>
+          <li>右上の <strong>Sign in</strong> をクリックする</li>
+          <li>メールアドレスまたはユーザー名と、パスワードを入力する</li>
+          <li><strong>Sign in</strong> をクリックする</li>
+        </ol>
+        <div class="note">
+          アカウントがない場合は <strong>Sign up</strong> から無料で作成できます。
+        </div>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-number">3</div>
+      <div class="step-body">
+        <h3>公開用の置き場所を作る</h3>
+        <p>GitHubでは、ファイルの置き場所を「リポジトリ」と呼びます。</p>
+        <ol>
+          <li>GitHub画面の右上にある <strong>＋</strong> をクリックする</li>
+          <li><strong>New repository</strong> をクリックする</li>
+          <li>
+            <strong>Repository name</strong> に名前を入力する<br>
+            例：<code>resident-demo-pages</code>
+          </li>
+          <li><strong>Public</strong> を選ぶ</li>
+          <li>
+            <strong>Add a README file</strong> などのチェックは付けなくてよい
+          </li>
+          <li>一番下の <strong>Create repository</strong> をクリックする</li>
+        </ol>
+        <div class="note">
+          リポジトリ名には、半角英数字とハイフンを使うと分かりやすくなります。
+          日本語や空白は避けてください。
+        </div>
+        <figure>
+          <img
+            src="github-pages-guide-assets/01-new-repository.png"
+            alt="GitHubのCreate a new repository画面"
+          >
+          <figcaption>
+            実際の新規作成画面。Repository nameを入力し、
+            公開範囲がPublicになっていることを確認して
+            Create repositoryを押します。
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-number">4</div>
+      <div class="step-body">
+        <h3>HTMLファイルをアップロード</h3>
+        <ol>
+          <li>
+            作成後の画面にある
+            <strong>uploading an existing file</strong> をクリックする
+          </li>
+          <li>
+            Finderから <code>index.html</code> を点線の枠内へ
+            ドラッグ＆ドロップする
+          </li>
+          <li>ファイル名が表示されるまで待つ</li>
+          <li>
+            画面下部の <strong>Commit changes</strong> をクリックする
+          </li>
+        </ol>
+        <div class="note">
+          CSS、画像、JavaScriptなど別のファイルも使っている場合は、
+          それらも一緒にドラッグ＆ドロップします。今回の
+          <code>resident.html</code> は単体でアップロードできます。
+        </div>
+        <figure>
+          <img
+            src="github-pages-guide-assets/02-upload-files.png"
+            alt="GitHubのファイルアップロード画面"
+          >
+          <figcaption>
+            実際のアップロード画面。中央の大きな枠へ
+            <code>index.html</code> をドラッグし、画面下部の
+            Commit changesを押します。
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-number">5</div>
+      <div class="step-body">
+        <h3>GitHub Pagesを有効化</h3>
+        <ol>
+          <li>リポジトリ上部の <strong>Settings</strong> をクリックする</li>
+          <li>左側メニューの <strong>Pages</strong> をクリックする</li>
+          <li>
+            <strong>Build and deployment</strong> の
+            <strong>Source</strong> で
+            <strong>Deploy from a branch</strong> を選ぶ
+          </li>
+          <li>
+            <strong>Branch</strong> の左側を <code>main</code>、
+            右側を <code>/(root)</code> にする
+          </li>
+          <li><strong>Save</strong> をクリックする</li>
+        </ol>
+        <div class="note">
+          <strong>Settings</strong> が見つからない場合は、上部メニュー右端の
+          <strong>…</strong> の中を確認してください。
+        </div>
+        <figure>
+          <img
+            src="github-pages-guide-assets/03-pages-settings.png"
+            alt="GitHub Pagesの設定画面"
+          >
+          <figcaption>
+            実際のPages設定画面。左側でPagesを選び、
+            SourceがDeploy from a branch、Branchが
+            mainと/(root)になっていることを確認します。
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="step">
+      <div class="step-number">6</div>
+      <div class="step-body">
+        <h3>公開URLを開く</h3>
+        <ol>
+          <li>設定後、1〜3分ほど待つ</li>
+          <li>ブラウザの再読み込みボタンを押す</li>
+          <li>
+            Pages設定画面上部の
+            <strong>Your site is live at</strong> に続くURLを確認する
+          </li>
+          <li><strong>Visit site</strong> をクリックする</li>
+        </ol>
+        <p>公開URLは通常、次の形になります。</p>
+        <pre><code>https://ユーザー名.github.io/リポジトリ名/</code></pre>
+        <div class="note">
+          最初に「404」と表示されても、設定直後なら異常とは限りません。
+          2〜3分待ってから再読み込みしてください。
+        </div>
+        <figure>
+          <img
+            src="github-pages-guide-assets/04-live-site.png"
+            alt="GitHub Pagesで公開されたresident.htmlの画面"
+          >
+          <figcaption>
+            実際にGitHub Pagesで公開された画面。
+            ローカルファイルではなく、公開URLから正常に表示できることを確認しました。
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="result">
+      <h2>今回の公開結果</h2>
+      <ul>
+        <li>
+          公開ページ:
+          <a href="https://yokkomystery.github.io/resident-demo-pages/">
+            https://yokkomystery.github.io/resident-demo-pages/
+          </a>
+        </li>
+        <li>
+          GitHubリポジトリ:
+          <a href="https://github.com/yokkomystery/resident-demo-pages">
+            https://github.com/yokkomystery/resident-demo-pages
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="summary">
+      <h2>HTMLを更新するとき</h2>
+      <ol>
+        <li>GitHubで対象のリポジトリを開く</li>
+        <li><strong>Add file → Upload files</strong> をクリックする</li>
+        <li>新しい <code>index.html</code> をドラッグ＆ドロップする</li>
+        <li><strong>Commit changes</strong> をクリックする</li>
+        <li>1〜3分待って公開ページを再読み込みする</li>
+      </ol>
+      <div class="note">
+        同じ名前の <code>index.html</code> をアップロードすると、
+        古い内容が新しい内容に更新されます。
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    GitHub Pages HTML公開手順書 / 2026年6月6日作成
+  </footer>
+</body>
+</html>
